@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Block Jump Game</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+        }
+        #game {
+            position: relative;
+            width: 800px;
+            height: 400px;
+            background-color: #fff;
+            border: none;
+            overflow-x: scroll;
+            border-radius: 20px;
+        }
+        .block {
+            width: 100px;
+            height: 20px;
+            background-color: #007BFF;
+            position: absolute;
+            bottom: 0;
+            transition: bottom 0.3s ease; /* Smooth transition for block height */
+            border-radius: 3px;
+        }
+        .player {
+            width: 30px;
+            height: 30px;
+            background-color: #FF5733;
+            position: absolute;
+            bottom: 20px;
+            left: 50px;
+            transition: left 0.3s ease; /* Smooth transition for player movement */
+            border-radius: 50%;
+            background-size: cover; /* sorgt dafür, dass das Bild den gesamten Bereich ausfüllt */
+            background-position: center;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .player::after{
+            content: 'player';
+            position: absolute;
+            top: -15px;
+            font-size: 10px;
+            font-family: 'Arial', sans-serif;
+            opacity: 0.5;
+        }
+        
+        h1 {
+            position: absolute;
+            top: 10px;
+            left: 20%;
+            font-size: 24px;
+            color: #333;
+            font-family: 'Arial', sans-serif;
+        }
+        #points{
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-size: 24px;
+            background: #fff;
+            padding: 20px;
+            color: #000;
+            border-radius: 10px;
+            font-family: 'Arial', sans-serif;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h1>notiere alles was du gemacht hast im Klassennotizbuch</h1>
+    <div id="points">points <span id="points-number">0</span></div>
+    <input type="file" id="imageUpload" name="image" accept="image/*" style="display: none;" required>
+    <div id="game">
+        <label for="imageUpload"><div class="player" id="player" style="left: 50px;"></div></label>
+    </div>
+
+    <script>
+        const player = document.getElementById("player");
+        const game = document.getElementById("game");
+        let currentPosition = 50; // Startposition des Spielers
+        const jumpHeight = 20; // Höhe des Sprungs
+        let currentBlockIndex = 0; // Index des aktuellen Blocks
+        let points = 0;
+
+        const imageUpload = document.getElementById("imageUpload");
+
+        imageUpload.addEventListener("change", function(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+
+                reader.onload = function(e) {
+                    player.style.backgroundImage = `url(${e.target.result})`;
+                };
+
+                reader.readAsDataURL(file); // Bild als Data URL lesen
+            }
+        });
+
+        let mathQuestions = [
+            
+        ];
+
+        function fillmathquestionswithrandomquestinswithanswers(times) {
+            for (let i = 0; i < times; i++){
+                let randquestionnum1 = Math.floor(Math.random() * 100);
+                let randquestionnum2 = Math.floor(Math.random() * 100);
+                let operations = ["+", "-", "*", "/"];
+                let randoperation = operations[Math.floor(Math.random() * operations.length)];
+                let answer = eval(`${randquestionnum1} ${randoperation} ${randquestionnum2}`);
+                const newmathquestion = {
+                    question: `Was ist ${randquestionnum1} ${randoperation} ${randquestionnum2}?`,
+                    answer: answer.toString()
+                }
+                mathQuestions.push(newmathquestion);
+            }
+        }
+
+        fillmathquestionswithrandomquestinswithanswers(100);
+
+        
+
+        const generalQuestions = [
+            { question: "Was ist die Hauptstadt von Deutschland?", answer: "Berlin" },
+            { question: "Was ist der größte Planet im Sonnensystem?", answer: "Jupiter" },
+            { question: "Welches Tier kann fliegen?", answer: "Vogel" },
+            { question: "Wie viele Kontinente gibt es?", answer: "7" },
+            { question: "Was ist das kleinste Land der Welt?", answer: "Vatikanstadt" },
+            { question: "In welchem Jahr begann der Zweite Weltkrieg?", answer: "1939" },
+            { question: "Was ist die chemische Formel für Wasser?", answer: "H2O" },
+            { question: "Wie viele Bundesländer hat Deutschland?", answer: "16" },
+            { question: "Was ist die Währung in Japan?", answer: "Yen" },
+            { question: "Wie heißt die größte Wüste der Welt?", answer: "Sahara" },
+            { question: "Wer malte die Mona Lisa?", answer: "Leonardo da Vinci" },
+            { question: "Welches Element hat das Symbol 'O'?", answer: "Sauerstoff" },
+            { question: "Wie viele Zähne hat ein Erwachsener normalerweise?", answer: "32" },
+            { question: "Was ist die Hauptstadt von Frankreich?", answer: "Paris" },
+            { question: "Welches Instrument hat 88 Tasten?", answer: "Klavier" },
+            { question: "Wer schrieb 'Hamlet'?", answer: "William Shakespeare" },
+            { question: "Was ist die Hauptsprache in Brasilien?", answer: "Portugiesisch" },
+            { question: "Wie viele Planeten hat unser Sonnensystem?", answer: "8" },
+            { question: "Was ist der längste Fluss der Welt?", answer: "Nil" },
+            { question: "Wer war der erste Mensch auf dem Mond?", answer: "Neil Armstrong" },
+            { question: "Wie viele Monate hat ein Jahr?", answer: "12" },
+            { question: "Welches Land hat die meisten Einwohner?", answer: "China" },
+            { question: "Was ist die Hauptstadt von Italien?", answer: "Rom" },
+            { question: "Was ist der höchste Berg der Welt?", answer: "Mount Everest" },
+            { question: "Wie viele Farben hat ein Regenbogen?", answer: "7" },
+            { question: "Was ist die größte Stadt der USA?", answer: "New York" },
+            { question: "Welches Tier ist bekannt als 'König der Tiere'?", answer: "Löwe" },
+            { question: "Was ist das meistgesprochene Wort der Welt?", answer: "Hallo" },
+            { question: "Wie heißt die berühmte Detektivin von Agatha Christie?", answer: "Hercule Poirot" },
+            { question: "Was ist das Nationaltier von Schottland?", answer: "Einhorn" },
+            { question: "Was ist der längste Fluss in Deutschland?", answer: "Rhein" },
+            { question: "Wer entdeckte Amerika?", answer: "Christoph Kolumbus" },
+            { question: "Was ist der größte Ozean der Welt?", answer: "Pazifischer Ozean" },
+            { question: "Wie viele Beine hat ein Insekt?", answer: "6" },
+            { question: "Was ist die Hauptstadt von Spanien?", answer: "Madrid" },
+            { question: "Was ist die beliebteste Sportart der Welt?", answer: "Fußball" },
+            { question: "Was ist der Name des ersten Computer?", answer: "ENIAC" },
+            { question: "Was ist die wichtigste Sprache in der Informatik?", answer: "Englisch" },
+            { question: "Wer war der erste Präsident der USA?", answer: "George Washington" },
+            { question: "Was ist die offizielle Sprache in Ägypten?", answer: "Arabisch" },
+            { question: "Wie nennt man die Wissenschaft von den Tieren?", answer: "Zoologie" },
+            { question: "Was ist die größte Insel der Welt?", answer: "Grönland" },
+            { question: "Was ist das Symbol für Gold?", answer: "Au" },
+            { question: "Wie viele Ziffern hat eine Telefonnummer in Deutschland?", answer: "11" }
+        ];
+
+
+        // Funktion zum Erzeugen von zufälligen Blöcken
+        function createRandomBlocks(numBlocks) {
+            for (let i = 0; i < numBlocks; i++) {
+                const block = document.createElement("div");
+                block.classList.add("block");
+                block.style.left = `${150 + (i * 150)}px`; // Positionierung der Blöcke
+                block.style.bottom = `${Math.random() * 200 + 20}px`; // Zufällige Höhe der Blöcke
+
+                // Zufällige Auswahl der Fragen
+                const isMathQuestion = Math.random() < 0.5; // 50% Wahrscheinlichkeit für Mathematikfragen
+                let questionObj;
+
+                if (isMathQuestion) {
+                    questionObj = mathQuestions[Math.floor(Math.random() * mathQuestions.length)];
+                } else {
+                    questionObj = generalQuestions[Math.floor(Math.random() * generalQuestions.length)];
+                }
+
+                block.setAttribute("data-question", questionObj.question);
+                block.setAttribute("data-answer", questionObj.answer);
+                game.appendChild(block); // Block zum Spiel hinzufügen
+
+                block.addEventListener("click", () => {
+                    if (currentBlockIndex !== i) {
+                        alert("bitte löse die nächste aufgabe!");
+                        return; // Verhindert das Überspringen des Blocks
+                    }
+
+                    const question = block.getAttribute("data-question");
+                    const answer = block.getAttribute("data-answer");
+                    const userAnswer = prompt(question);
+
+                    if (!userAnswer){
+                        return;
+                    }
+
+                    if (userAnswer.toLowerCase() === answer.toLowerCase()) {
+                        alert("Richtig! Du kannst weiter springen.");
+                        currentBlockIndex++; // Gehe zum nächsten Block
+                        currentPosition = parseInt(block.style.left) + 35; // Move to the next block
+                        player.style.left = currentPosition + "px"; // Move player to the next block
+                        player.style.bottom = (parseInt(block.style.bottom) + jumpHeight) + "px"; // Jump on block
+                        points++;
+                        document.getElementById("points-number").textContent = points;
+                        if (currentBlockIndex >= 100){
+                            alert("du hast gewonnen");
+                            document.querySelector("h1").style.color = "red";
+                        }
+                    } else if (userAnswer.toLowerCase() == 'idk'){
+                        alert('das ist die richtige antwort:' + answer);
+                        points--;
+                        document.getElementById("points-number").textContent = points;
+                        
+                    } else {
+                        alert("Leider falsch! Versuch es noch einmal.");
+                    }
+                });
+            }
+        }
+
+        createRandomBlocks(100); // Erzeuge 5 zufällige Blöcke
+    </script>
+</body>
+</html>
